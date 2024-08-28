@@ -4,7 +4,7 @@ import cors from 'cors';
 
 import connectDB from './mongodb/connect.js';
 import {postRoutes} from './routes/postRoutes.js';
-import { aietRoutes } from './routes/aieRoutes.js';
+import { aieRoutes } from './routes/aieRoutes.js';
 
 
 dotenv.config();
@@ -15,7 +15,7 @@ app.use(express.json({ limit:'50mb'}));
 
 
 app.use('/api/v1/post', postRoutes);
-app.use('/api/v1/aie', aietRoutes);
+app.use('/api/v1/aie', aieRoutes);
 
 
 app.get('/', async(req, res) =>{
