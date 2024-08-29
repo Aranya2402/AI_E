@@ -1,12 +1,8 @@
 import express from 'express';
+import axios from 'axios';
 import * as dotenv from 'dotenv';
-import OpenAI from 'openai';  // Import OpenAI package
 
 dotenv.config();
-
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-});
 
 const router = express.Router();
 
@@ -18,21 +14,31 @@ router.route('/').post(async (req, res) => {
     try {
         const { prompt } = req.body;
 
-        // Assuming createImage is incorrect, using a more generic method call:
-        const aiResponse = await openai.images.generate({
-            prompt,
-            n: 1,
-            size: '1024x1024',
-            response_format: 'b64_json',
-        });
+        const response = await axios.post(
+            'https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell',
+            {
+                inputs: prompt,
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${process.env.API_KEY}`,
+                    'Content-Type': 'application/json',
+                },
+                responseType: 'arraybuffer',  // To handle image data
+            }
+        );
 
-        const image = aiResponse.data[0].b64_json;
+        const base64Image = Buffer.from(response.data, 'binary').toString('base64');
+        const imageUrl = `data:image/png;base64,${base64Image}`;
 
-        res.status(200).json({ photo: image });
+        res.status(200).json({ photo: imageUrl });
 
     } catch (error) {
-        console.log(error);
-        res.status(500).send(error?.response.data.error.message)    }
+        console.error('Error generating image:', error);
+        res.status(500).json({
+            message: error.message || 'An unexpected error occurred.',
+        });
+    }
 });
 
 export { router as aieRoutes };
